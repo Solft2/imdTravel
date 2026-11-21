@@ -56,9 +56,9 @@ class AirlinesHubClientTest {
 		server.expect(requestTo(BASE_URL + "/sell"))
 				.andExpect(method(HttpMethod.POST))
 				.andExpect(content().json("{\"flight\":\"IM123\",\"day\":\"2026-11-18\"}"))
-				.andRespond(withSuccess(
-						"{\"transactionId\":\"txn-456\",\"seatsRemaining\":6}",
-						MediaType.APPLICATION_JSON));
+				.andRespond(withStatus(HttpStatus.CREATED)
+						.contentType(MediaType.APPLICATION_JSON)
+						.body("{\"transactionId\":\"txn-456\",\"seatsRemaining\":6}"));
 
 		AirlinesHubClient.SellResponse response = client.sellFlight(FLIGHT, DAY);
 

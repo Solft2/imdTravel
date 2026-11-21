@@ -8,13 +8,15 @@ import java.io.IOException;
 import java.util.UUID;
 
 import br.ufrn.imd.imdtravel.context.CorrelationIdContext;
+import br.ufrn.imd.imdtravel.observability.StructuredEventLogger;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.slf4j.MDC;
 
 class CorrelationIdFilterTest {
 
-	private final CorrelationIdFilter filter = new CorrelationIdFilter();
+	private final CorrelationIdFilter filter = new CorrelationIdFilter(new StructuredEventLogger());
 
 	@Test
 	void reusesIncomingIdAndMakesItAvailableDuringRequest() throws Exception {
@@ -24,10 +26,14 @@ class CorrelationIdFilterTest {
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		filter.doFilter(request, response, (servletRequest, servletResponse) ->
-				assertEquals(correlationId, CorrelationIdContext.getCorrelationId()));
+		{
+			assertEquals(correlationId, CorrelationIdContext.getCorrelationId());
+			assertEquals(correlationId, MDC.get("cid"));
+		});
 
 		assertEquals(correlationId, response.getHeader(CorrelationIdFilter.HEADER_NAME));
 		assertNull(CorrelationIdContext.getCorrelationId());
+		assertNull(MDC.get("cid"));
 	}
 
 	@Test

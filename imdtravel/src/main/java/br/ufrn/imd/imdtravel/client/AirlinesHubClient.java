@@ -4,9 +4,11 @@ import java.math.BigDecimal;
 import java.net.URI;
 
 import br.ufrn.imd.imdtravel.config.ExternalServicesProperties;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
@@ -47,6 +49,10 @@ public class AirlinesHubClient {
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(new SellRequest(flight, day))
 				.retrieve()
+				.onStatus(status -> status.is2xxSuccessful() && status.value() != HttpStatus.CREATED.value(),
+						(request, response) -> {
+							throw new RestClientException("AirlinesHub /sell must return HTTP 201");
+						})
 				.body(SellResponse.class);
 	}
 

@@ -1,8 +1,7 @@
 # IMDTravel — dependências usam imagens do Docker Hub; imdtravel é compilado localmente.
 #
-# Para rodar a partir da raiz do repositório:
-#   1. docker compose -f docker-compose.hub.yml up -d --wait --build
-#   2. curl http://localhost:8080/health
+# Para rodar a partir da raiz do repositório: docker compose up -d --wait --build
+# Validar: curl http://localhost:8080/health
 #
 # Os serviços auxiliares usam imagens publicadas para linux/amd64 e linux/arm64.
 # Para selecionar outra versão dessas imagens: IMAGE_TAG=... docker compose up
@@ -28,6 +27,8 @@ services:
       SELL_MIN_MS: ${SELL_MIN_MS:-300}
       SELL_MAX_MS: ${SELL_MAX_MS:-900}
     healthcheck: *healthcheck
+    networks:
+      - imdtravel-network
 
   exchange:
     image: gibeonufrn/imdtravel-exchange:${IMAGE_TAG:-baseline}
@@ -39,12 +40,16 @@ services:
       EXCHANGE_MIN: ${EXCHANGE_MIN:-5.00}
       EXCHANGE_MAX: ${EXCHANGE_MAX:-6.00}
     healthcheck: *healthcheck
+    networks:
+      - imdtravel-network
 
   fidelity:
     image: gibeonufrn/imdtravel-fidelity:${IMAGE_TAG:-baseline}
     environment:
       PORT: 8080
     healthcheck: *healthcheck
+    networks:
+      - imdtravel-network
 
   imdtravel:
     build:
@@ -64,6 +69,16 @@ services:
       airlineshub: { condition: service_healthy }
       exchange:    { condition: service_healthy }
       fidelity:    { condition: service_healthy }
+    networks:
+      - imdtravel-network
+      - imdtravel-host
 
 volumes:
   sales-data:
+
+networks:
+  imdtravel-network:
+    driver: bridge
+    internal: true
+  imdtravel-host:
+    driver: bridge

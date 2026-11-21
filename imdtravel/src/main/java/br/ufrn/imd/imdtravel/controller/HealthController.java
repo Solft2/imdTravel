@@ -14,7 +14,7 @@ public class HealthController {
 	@GetMapping("/health")
 	public HealthResponse health() {
 		long uptimeSeconds = runtimeMXBean.getUptime() / 1000;
-		return new HealthResponse("UP", uptimeSeconds);
+		return new HealthResponse("ok", uptimeSeconds);
 	}
 
 	public record HealthResponse(String status, long uptimeS) {
